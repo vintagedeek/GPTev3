@@ -63,10 +63,30 @@ def load_env(filename):
         A dict of key=value pairs in a .env file.
     """
     variables = {}
-    with open(filename, 'r') as file:
+    with open(filename, "r") as file:
         for line in file.readlines():
             line = line.strip()
-            if line and not line.startswith('#'):
-                key, value = line.split('=', 1)
+            if line and not line.startswith("#"):
+                key, value = line.split("=", 1)
                 variables[key] = value
     return variables
+
+
+def write_logs(messages):
+    """
+    Write a log txt file that includes all messages sent between GPT and user.
+
+    Parameters
+    ----------
+    messages : list
+        A list of dicts where each dict identifies GPT (role = "system") versus
+        the user (role = "user") and the message sent ("content").
+    
+    Returns
+    None
+    """
+    with open("logs.txt", "w") as f:
+        for dictionary in messages:
+            for key, value in dictionary.items():
+                f.write("{}: {}\n".format(key, value))
+            f.write("\n")

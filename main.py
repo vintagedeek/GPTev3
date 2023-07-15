@@ -8,7 +8,12 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 import urequests
 import utime
-from utils import get_function_and_args, load_env
+from utils import (
+    get_model_messages_functions, 
+    get_function_and_args, 
+    load_env,
+    write_logs
+)
 # This program requires LEGO EV3 MicroPython v2.0 or higher.
 # Click "Open user guide" on the EV3 extension tab for more information.
 
@@ -44,39 +49,56 @@ def main(ip_address, port, task):
     color_sensor = ColorSensor(Port.S3)
     WHEEL_DIAMETER = 55.5 
     AXEL_TRACK = 110 # distance from center of left tire to center of right tire
-
     robot = DriveBase(
         left_motor, 
         right_motor, 
         wheel_diameter=WHEEL_DIAMETER, 
         axle_track=AXEL_TRACK
     )
-
     function_dict = {
-        "drive_ev3": robot.drive
+        "drive_ev3": robot.drive,
+        "drive_ev3_straight": robot.straight
     }
 
+    model, messages, functions = get_model_messages_functions(
+        task=task
+    )    
+    ev3.speaker.say("Getting instructions from GPT")
     while True:
-        url = "http://{}:{}/ask".format(ip_address, port)
-        ev3.speaker.say("Getting instructions from GPT")
-        response = urequests.post(url, json={"task": task})
-        ev3.speaker.say("Got response")
-        response_message = response.json()["choices"][0]["message"]
-        gpt_selected_function, function_args = get_function_and_args(response_message)
-        robot_action = function_dict[gpt_selected_function]
-        robot_action(*function_args.values())
-        ev3.screen.clear()
-        ev3.screen.print(str(function_args["speed"]))
-
-        utime.sleep(10)
-        ev3.speaker.say("Mission complete.")
-        ev3.speaker.beep()
+        try:
+            url = "http://{}:{}/ask".format(ip_address, port)
+            data= {
+                "task": task,
+                "model": model,
+                "messages": messages,
+                "functions": functions
+            }
+            response = urequests.post(url, json=data)
+            response_message = response.json()["choices"][0]["message"]
+            gpt_selected_function, function_args = get_function_and_args(response_message)
+            robot_action = function_dict[gpt_selected_function]
+            robot_action(*function_args.values())
+            kwarg_names = ", ".join(key for key in function_args.keys())
+            kwarg_values = ", ".join(str(value) for value in function_args.values())
+            color_sensor_reading = color_sensor.reflection()
+            messages += [
+                {
+                    "role": "system",
+                    "content": "To help the ev3 achieve the task called {}, I chose the function {} with keyword args {} whose values were {}, respectively.".format(task, gpt_selected_function, kwarg_names, kwarg_values)
+                },
+                {
+                    "role": "user",
+                    "content": "The ev3 called the function with the args you just provided. The color sensor returned {}. Now select a function and its args to help the ev3 complete the task called {}".format(color_sensor_reading, task)
+                }
+            ]
+        except:
+            write_logs(messages)
 
 
 if __name__ == "__main__":
-    # had to ssh into ev3 and manually create .env (wasn't copying over)
+    # had to ssh into ev3 and manually copy in .env (wasn't copying over)
     env_vars = load_env('.env')
     IP_ADDRESS = env_vars["IP_ADDRESS"] 
     PORT = env_vars["PORT"]
-    TASK = "task_drive_forever"
+    TASK = env_vars["TASK"]
     main(IP_ADDRESS, PORT, TASK)
