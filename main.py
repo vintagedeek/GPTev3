@@ -42,10 +42,13 @@ def main(ip_address, port, task):
     ev3 = EV3Brick()
     small_motor = Motor(Port.A) # for lifting/pushing
     left_motor = Motor(Port.B)
+    left_motor.reset_angle(0)
     right_motor = Motor(Port.C)
+    right_motor.reset_angle(0)
     touch_sensor = TouchSensor(Port.S1)
-    gyro_sensor = GyroSensor(Port.S2) 
-    eyes = UltrasonicSensor(Port.S4) # measures distance with soundwaves
+    gyro_sensor = GyroSensor(Port.S2)
+    gyro_sensor.reset_angle(0) 
+    ultra_sonic_sensor = UltrasonicSensor(Port.S4) # measures distance with soundwaves
     color_sensor = ColorSensor(Port.S3)
     WHEEL_DIAMETER = 55.5 
     AXEL_TRACK = 110 # distance from center of left tire to center of right tire
@@ -55,14 +58,19 @@ def main(ip_address, port, task):
         wheel_diameter=WHEEL_DIAMETER, 
         axle_track=AXEL_TRACK
     )
+    # Values in function_dict are DriverBase methods called by GPT. The GPT API
+    # call returns the str key in this dict used to call the corresonding method. 
     function_dict = {
         "drive_ev3": robot.drive,
-        "drive_ev3_straight": robot.straight
+        "drive_straight_for_distance_then_stop": robot.straight,
+        "turn_by_angle_then_stop": robot.turn,
+        "stop_ev3": robot.stop
     }
 
     model, messages, functions = get_model_messages_functions(
         task=task
-    )    
+    )
+    logs = []    
     ev3.speaker.say("Getting instructions from GPT")
     while True:
         try:
@@ -73,6 +81,7 @@ def main(ip_address, port, task):
                 "messages": messages,
                 "functions": functions
             }
+            robot.stop()
             response = urequests.post(url, json=data)
             response_message = response.json()["choices"][0]["message"]
             gpt_selected_function, function_args = get_function_and_args(response_message)
@@ -81,18 +90,30 @@ def main(ip_address, port, task):
             kwarg_names = ", ".join(key for key in function_args.keys())
             kwarg_values = ", ".join(str(value) for value in function_args.values())
             color_sensor_reading = color_sensor.reflection()
+            ultra_sonic_sensor_reading = ultra_sonic_sensor.distance()
+            gyro_sensor_reading = gyro_sensor.angle()
+            left_motor_angle = left_motor.angle()
+            right_motor_angle = right_motor.angle()
+            # To move these messages to openai_api_content.py and customize.
             messages += [
                 {
-                    "role": "system",
+                    "role": "assistant",
                     "content": "To help the ev3 achieve the task called {}, I chose the function {} with keyword args {} whose values were {}, respectively.".format(task, gpt_selected_function, kwarg_names, kwarg_values)
                 },
+                # {
+                #     "role": "user",
+                #     "content": "The ev3 called the function with the args you just provided. The color sensor returned {}. The ultrasonic sensor returned {} millimeters. The gyro sensor returned {} degrees. The left motor.angle() returned {} degrees and the right motor.angle() returned {} degrees. Now select a function and its args to help the ev3 complete the task called {}.".format(color_sensor_reading, ultra_sonic_sensor_reading, gyro_sensor_reading, left_motor_angle, right_motor_angle, task)
+                # },
                 {
                     "role": "user",
-                    "content": "The ev3 called the function with the args you just provided. The color sensor returned {}. Now select a function and its args to help the ev3 complete the task called {}".format(color_sensor_reading, task)
+                    "content": "The ev3 called the function with the args you just provided. The color sensor returned {}. Now, compute the turn_rate, which is (32 - {}) * 2.5. Pass that value as the turn rate to ev3 to complete task {}. I recommend you pass a speed of 40.".format(color_sensor_reading, color_sensor_reading, task)                    
                 }
             ]
+
         except:
-            write_logs(messages)
+            logs.append({"role": "ev3_robot_api", "content": "OpenAI API POST request failed."})
+            write_logs(messages, logs)
+            pass
 
 
 if __name__ == "__main__":
