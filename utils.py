@@ -72,7 +72,7 @@ def load_env(filename):
     return variables
 
 
-def write_logs(messages):
+def write_logs(messages, logs):
     """
     Write a log txt file that includes all messages sent between GPT and user.
 
@@ -81,12 +81,21 @@ def write_logs(messages):
     messages : list
         A list of dicts where each dict identifies GPT (role = "system") versus
         the user (role = "user") and the message sent ("content").
+    logs : list
+        A list of dicts whose keys are "role" and "content". These logs document
+        whether an OpenAI API POST request failed. Such failures trigger this
+        function.
     
     Returns
     None
     """
-    with open("logs.txt", "w") as f:
+    with open("/home/robot/GPTev3/logs.txt", "w") as f:
         for dictionary in messages:
+            for key, value in dictionary.items():
+                f.write("{}: {}\n".format(key, value))
+            f.write("\n")
+
+        for dictionary in logs:
             for key, value in dictionary.items():
                 f.write("{}: {}\n".format(key, value))
             f.write("\n")
