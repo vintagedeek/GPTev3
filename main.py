@@ -8,6 +8,7 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 import urequests
 import utime
+import ujson
 from utils import (
     get_model_messages_functions, 
     get_function_and_args, 
@@ -72,18 +73,20 @@ def main(ip_address, port, task):
     )
     logs = []    
     ev3.speaker.say("Getting instructions from GPT")
+    response_logs = []
     while True:
-        try:
-            url = "http://{}:{}/ask".format(ip_address, port)
-            data= {
-                "task": task,
-                "model": model,
-                "messages": messages,
-                "functions": functions
-            }
-            robot.stop()
-            response = urequests.post(url, json=data)
-            response_message = response.json()["choices"][0]["message"]
+        url = "http://{}:{}/ask".format(ip_address, port)
+        data= {
+            "task": task,
+            "model": model,
+            "messages": messages,
+            "functions": functions
+        }
+        response = urequests.post(url, json=data) 
+        response_dict = response.json()  
+        response_logs.append(response_dict) 
+        response_message = response.json()["choices"][0]["message"]
+        if response_message.get("function_call"):
             gpt_selected_function, function_args = get_function_and_args(response_message)
             robot_action = function_dict[gpt_selected_function]
             robot_action(*function_args.values())
@@ -94,30 +97,26 @@ def main(ip_address, port, task):
             gyro_sensor_reading = gyro_sensor.angle()
             left_motor_angle = left_motor.angle()
             right_motor_angle = right_motor.angle()
-            # To move these messages to openai_api_content.py and customize.
+            # TODO: these messages to openai_api_content.py (eventually json) and customize.
+            # For function message, see "Function calling" at https://platform.openai.com/docs/guides/gpt/function-calling
             messages += [
                 {
-                    "role": "assistant",
-                    "content": "To help the ev3 achieve the task called {}, I chose the function {} with keyword args {} whose values were {}, respectively.".format(task, gpt_selected_function, kwarg_names, kwarg_values)
-                },
-                # {
-                #     "role": "user",
-                #     "content": "The ev3 called the function with the args you just provided. The color sensor returned {}. The ultrasonic sensor returned {} millimeters. The gyro sensor returned {} degrees. The left motor.angle() returned {} degrees and the right motor.angle() returned {} degrees. Now select a function and its args to help the ev3 complete the task called {}.".format(color_sensor_reading, ultra_sonic_sensor_reading, gyro_sensor_reading, left_motor_angle, right_motor_angle, task)
-                # },
-                {
-                    "role": "user",
-                    "content": "The ev3 called the function with the args you just provided. The color sensor returned {}. Now, compute the turn_rate, which is (32 - {}) * 2.5. Pass that value as the turn rate to ev3 to complete task {}. I recommend you pass a speed of 40.".format(color_sensor_reading, color_sensor_reading, task)                    
+                    "role": "function",
+                    "name": gpt_selected_function,
+                    "content": "The ev3 called the function with the args you just provided. The color sensor returned {}. The ultrasonic sensor returned {} millimeters. The gyro sensor returned {} degrees. The left motor.angle() returned {} degrees and the right motor.angle() returned {} degrees. Now select a function and its args to help the ev3 complete the task called {}.".format(color_sensor_reading, ultra_sonic_sensor_reading, gyro_sensor_reading, left_motor_angle, right_motor_angle, task)
                 }
             ]
+        else:
+            logs.append({"role": "ev3_robot_api", "content": "No function selected."})
 
-        except:
-            logs.append({"role": "ev3_robot_api", "content": "OpenAI API POST request failed."})
-            write_logs(messages, logs)
-            pass
-
-
+        write_logs(messages, logs)
+        with open("response_logs.json", "w") as f:
+            ujson.dump(response_logs, f)
+        wait(1200) # Reduce POST requests to OpenAI API
+        
+        
 if __name__ == "__main__":
-    # had to ssh into ev3 and manually copy in .env (wasn't copying over)
+    # Had to ssh into ev3 and manually copy in .env (wasn't copying over)
     env_vars = load_env('.env')
     IP_ADDRESS = env_vars["IP_ADDRESS"] 
     PORT = env_vars["PORT"]
