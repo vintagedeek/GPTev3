@@ -179,7 +179,8 @@ api_dict = {
                         "angle": {
                             "type": "integer",
                             "description": "Angle to turn in degrees. One full rotation corresponds to 360 degrees."
-                        }
+                        },
+                    "required": ["angle"]
                     }
                 }
             },
