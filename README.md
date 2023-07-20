@@ -86,9 +86,13 @@ and functions as needed to accomplish your task. You may add new tasks to this f
 # FAQ
 
 **I started `main.py` on the ev3 but the ev3 is not moving. The program isn't terminating (I see the arrow on the ev3's screen, but it doesn't move).**
-- Make sure you are running `ev3_robot_api.py` on your computer before starting `main.py` on the ev3. 
-Look for successful POST requests in the terminal.
+- Make sure you are running `ev3_robot_api.py` on your computer before starting `main.py` on the ev3. Look for successful POST requests in the terminal.
+
+
 - Ensure the ev3 is connected to the wifi network.
+
+
+- Double check the ip address
 
 
 **I changed the `TASK` variable in the `.env` file but the ev3 is still doing an old task.**

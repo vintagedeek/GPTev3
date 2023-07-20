@@ -179,11 +179,11 @@ api_dict = {
                         "angle": {
                             "type": "integer",
                             "description": "Angle to turn in degrees. One full rotation corresponds to 360 degrees."
-                        },
+                        }
+                    },
                     "required": ["angle"]
-                    }
                 }
-            },
+            }#,
             # {
             #     "name": "stop_ev3",
             #     "description": "Stops the robot by letting the motors spin freely.",

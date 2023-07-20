@@ -16,11 +16,12 @@ def ask_openai():
     model = request.json["model"]
     messages = request.json["messages"]
     functions = request.json["functions"]
+    # PROMPTGPT PAPER USES TEMPERATURE=0 FOR FUNCTION CALLING
     response = openai.ChatCompletion.create(
         model=model,
         messages=messages,
         functions=functions,
-        function_call="auto"
+        function_call="auto",
     )
     return response
 
