@@ -2,6 +2,8 @@
 This project seeks to experiment with getting an ev3 to complete tasks without 
 explicit programming using instructions from GPT via the OpenAI API. 
 
+**NOTE**: Task: `task_follow_line_v2` seems to run without errors. Task 3 has errors.
+
 
 # Approach
 - Connect NetGear N150 wifi dongle to EV3.

@@ -83,7 +83,7 @@ content_dict = {
             "which we will set as 2.5; (4) the turn_rate you instruct the ev3 "
             "to use will be PROPORTIONAL GAIN * deviation. "
         )
-    },
+    }
 }
 
 api_dict = {
