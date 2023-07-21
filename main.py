@@ -114,7 +114,7 @@ def main(ip_address, port, task):
             ujson.dump(response_logs, f)
         wait(1200) # Reduce POST requests to OpenAI API
         
-        
+
 if __name__ == "__main__":
     # Had to ssh into ev3 and manually copy in .env (wasn't copying over)
     env_vars = load_env('.env')
