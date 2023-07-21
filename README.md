@@ -98,7 +98,7 @@ and functions as needed to accomplish your task. You may add new tasks to this f
 # Resources
 - **Function Calling with OpenAI GPT API**: https://platform.openai.com/docs/guides/gpt/function-calling
 - **PromptCraft Microsoft**: https://www.microsoft.com/en-us/research/uploads/prod/2023/02/ChatGPT___Robotics.pdf
-  - Uses `temperature=0` for getting GPT to call functions: https://github.com/microsoft/PromptCraft-Robotics/blob/main/chatgpt_airsim/chatgpt_airsim.py
+  - Uses `temperature=0` for getting GPT to call functions: https://github.com/microsoft/PromptCraft-Robotics/blob/main/chatgpt_airsim/chatgpt_airsim.py (unclear that 0 works better so far)
 
 
 # FAQ

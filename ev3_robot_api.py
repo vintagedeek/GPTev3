@@ -16,7 +16,8 @@ def ask_openai():
     model = request.json["model"]
     messages = request.json["messages"]
     functions = request.json["functions"]
-    # PROMPTGPT PAPER USES TEMPERATURE=0 FOR FUNCTION CALLING
+    # PromptCraft paper uses temperature=0 for function calling
+    # Unclear benefit so far
     response = openai.ChatCompletion.create(
         model=model,
         messages=messages,
