@@ -26,8 +26,18 @@ tasks to `open_api_content.py`, make sure to use the same task name in both `con
 
 
 ## First Time Using
+- This project uses:
+  - Lego Mindstorms EV3 (45544), Educator Vehicle build: http://robotsquare.com/2013/10/01/education-ev3-45544-instruction/
+  - The EV3 MicroPython image
+  - VS Code with the EV3 MicroPython extension
+  - For more on VS Code and the EV3 MicroPython image, see https://pybricks.com/ev3-micropython/startinstall.html
+
+
 - Run the following command to download the repository `git clone https://github.com/vintagedeek/GPTev3.git`
+
+
 - Obtain OpenAI API key (you will be charged for API calls so monitor usage).
+
 
 - Create the file `./.env` with the variables below. On windows call `ipconfig` in command prompt
   or PowerShell to get your IP address. In Linux you can use `ifconfig`.
@@ -85,6 +95,10 @@ and functions as needed to accomplish your task. You may add new tasks to this f
   - Only methods offered to GPT are DriverBase.straight() and DriverBase.turn().    
 
 
+# Resources
+- **Function Calling with OpenAI GPT API**: https://platform.openai.com/docs/guides/gpt/function-calling
+
+
 # FAQ
 
 **I started `main.py` on the ev3 but the ev3 is not moving. The program isn't terminating (I see the arrow on the ev3's screen, but it doesn't move).**
@@ -104,3 +118,9 @@ and functions as needed to accomplish your task. You may add new tasks to this f
 - Once connected, right click the device and click to SSH into it.
 - From there you can navigate to your program and manually copy the file over or just create the 
   `.env` manually using `vi .env`.
+
+
+**GPT is not choosing functions or messing up the syntax**
+- Per the docs, use models `gpt-3.5-turbo-0613` and `gpt-4-0613`. 
+- These models were fine-tuned to determine when a function should be called.
+- See **function calling**: https://platform.openai.com/docs/guides/gpt/function-calling
