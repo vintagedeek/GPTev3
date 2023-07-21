@@ -33,7 +33,7 @@ content_dict = {
         )
     },
 
-    "task_follow_line_v2": {
+    "task_follow_line_v2": { 
         "sys_content": (
             "You are controlling an ev3 robot by choosing functions and their "
             "arguments based on input. Your goal is to choose functions such "
@@ -61,6 +61,35 @@ content_dict = {
     },
 
     "task_follow_line_v3": {
+        "sys_content": (
+            "You are controlling an ev3 robot by choosing functions and their "
+            "arguments based on input. Your goal is to choose functions such "
+            "that the ev3 follows a line using its color sensor."            
+        ),
+        "usr_content": (
+            "You will be providing function calls to guide the ev3 robot you are "
+            "controlling around a track. The track has blue tape on its left "
+            "and white tape on the right. The color sensor returns a value of "
+            "about 9 when over the blue tape and about 55 when over the white "
+            "tape. The ev3 robot you are controlling has been placed in the "
+            "middle of the track, so the sensor may be sensing some of the blue "
+            "tape on the left and some of the white tape on the right. "
+            "Use this information and the color sensor readings to guide the "
+            "ev3 around the track until the human in the loop turns off the ev3."
+            "Make sure you select a function every time you are prompted. "
+            "Your response 'finish_reason' should always be 'function_call' "
+            "Your response 'finish_reason' should never be 'stop'. "
+            "Don't respond with any code as it seems to cause syntax problems "
+            "with your json response. If `response` is the name of the "
+            "variable holding your json response, the following code should "
+            "never raise a syntax error and always allow for parsing of a "
+            "function and its args: "
+            "`response.json['choices'][0]['message']['function_call']['name]` "
+            "and `response.json['choices'][0]['message']['function_call']['arguments']` "
+        )
+    },
+
+    "task_follow_line_v4": {
         "sys_content": (
             "You are controlling an ev3 robot by choosing functions and their "
             "arguments based on input. Your goal is to choose functions such "
@@ -122,7 +151,7 @@ api_dict = {
     },
 
     "task_follow_line": {
-        "model": "gpt-3.5-turbo",
+        "model": "gpt-3.5-turbo-0613",
         "messages": [
             {"role": "system", "content": content_dict["task_follow_line"]["sys_content"]}, 
             {"role": "user", "content": content_dict["task_follow_line"]["usr_content"]}
@@ -150,7 +179,7 @@ api_dict = {
     },
 
     "task_follow_line_v2": {
-        "model": "gpt-3.5-turbo",
+        "model": "gpt-3.5-turbo-0613",
         "messages": [
             {"role": "system", "content": content_dict["task_follow_line_v2"]["sys_content"]}, 
             {"role": "user", "content": content_dict["task_follow_line_v2"]["usr_content"]}
@@ -196,10 +225,56 @@ api_dict = {
     },
 
     "task_follow_line_v3": {
-        "model": "gpt-3.5-turbo",
+        "model": "gpt-3.5-turbo-0613",
         "messages": [
             {"role": "system", "content": content_dict["task_follow_line_v3"]["sys_content"]}, 
             {"role": "user", "content": content_dict["task_follow_line_v3"]["usr_content"]}
+        ],
+        "functions": [
+            {
+                "name": "drive_straight_for_distance_then_stop", 
+                "description": "Drives straight for a given distance in millimeters and then stops.", 
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "distance": {
+                            "type": "integer", 
+                            "description": "Distance to travel in millimeters."
+                        }
+                    }, 
+                    "required": ["distance"]
+                }
+            },
+            {
+                "name": "turn_by_angle_then_stop",
+                "description": "Turns in place by a given angle in degrees and then stops. One full rotation corresponds to 360 degrees.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "angle": {
+                            "type": "integer",
+                            "description": "Angle to turn in degrees. One full rotation corresponds to 360 degrees."
+                        }
+                    },
+                    "required": ["angle"]
+                }
+            }#,
+            # {
+            #     "name": "stop_ev3",
+            #     "description": "Stops the robot by letting the motors spin freely.",
+            #     "parameters": {
+            #         "type": "object",
+            #         "properties": {}
+            #     }
+            # }
+        ]        
+    },
+
+    "task_follow_line_v4": {
+        "model": "gpt-3.5-turbo-0613",
+        "messages": [
+            {"role": "system", "content": content_dict["task_follow_line_v4"]["sys_content"]}, 
+            {"role": "user", "content": content_dict["task_follow_line_v4"]["usr_content"]}
         ],
         "functions": [
             {
